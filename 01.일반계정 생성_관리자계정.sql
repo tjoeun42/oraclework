@@ -30,6 +30,11 @@ create user tjoeun identified by 1234;
 -- [표현법] grant 권한1, 권한2, ... to 계정명;
 grant CONNECT, RESOURCE to tjoeun;
 
+-- 만약 RESOURCE로 테이블이 생성이 안되면
+grant create table to tjoeun;
+-- 만약 SEQUENCE가 생성이 안되면
+grant create SEQUENCE to tjoeun;
+
 -- 용량에 제한 없이 테이블스테이스 할당하는 경우
 alter user tjoeun default TABLESPACE users quota unlimited on users;
 -- or
@@ -42,4 +47,7 @@ alter user tjoeun quota 30M on users;
 alter SESSION set "_oracle_script" = true;
 create user 계정명 identified by 비밀번호;
 grant CONNECT, RESOURCE to 계정명;
-alter user 계정명 default TABLESPACE users quota unlimited on users;
+alter user 계정명 quota unlimited on users;
+
+-- user 삭제
+drop user ji CASCADE;  -- 테이블이 있을때는 cascade를 붙여준다

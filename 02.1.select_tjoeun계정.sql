@@ -247,11 +247,72 @@ WHERE NOT SALARY BETWEEN 3500000 AND 6000000;
 --        컬럼명 앞 또는 BETWEEN앞에 기입 가능
 
 -- EMPLOYEE테이블에서 입사일이 90-01-01 ~ 01-01-01 인 사원의 모든 컬럼 조회
+SELECT *
+FROM EMPLOYEE
+-- WHERE HIRE_DATE >= '90/01/01' AND HIRE_DATE <= '01/01/01';
+WHERE HIRE_DATE BETWEEN '90/01/01' AND '01/01/01';
 
+----------------------------------------------------------------------------
+/*
+    <LIKE>
+    비교하고자하는 컬럼값이 내가 제시한 특정 패턴에 만족하는 경우 조회
+    
+    [표현법]
+    비교대상컬럼 LIKE '특정패턴'
+    
+    >> '%' : 0글자 이상
+       EX) 비교대상컬럼 LIKE '문자%' => 비교대상컬럼값이 '문자'로 시작하는 값 조회
+           비교대상컬럼 LIKE '%문자' => 비교대상컬럼값이 '문자'로 끝나는 값 조회
+           비교대상컬럼 LIKE '%문자%' => 비교대상컬럼값이 '문자'가 포함되어 있는 값 조회
+           
+    >> '_' : 1개당 1글자
+       EX) 비교대상컬럼 LIKE '_문자' => 비교대상컬럼값이 '문자' 앞에 무조건 1글자가 있고 문자로 끝나는 값 조회    
+           비교대상컬럼 LIKE '_ _문자' => 비교대상컬럼값이 '문자' 앞에 무조건 2글자가 있고 문자로 끝나는 값 조회
+           비교대상컬럼 LIKE '_문자_' => 비교대상컬럼값이 '문자' 앞과 끝에 1글자가 있고 중간에 문자가 있는 값 조회 
+*/
+-- EMPLOYEE테이블에서 사원명 중 전씨인 사원들의 사원명, 급여, 입사일 조회
+SELECT EMP_NAME, SALARY, HIRE_DATE
+FROM EMPLOYEE
+WHERE EMP_NAME LIKE '전%';
 
+-- EMPLOYEE테이블에서 사원명에서 '하'가 포함되어있는 사원들의 사원명, 전화번호 조회
+SELECT EMP_NAME, PHONE
+FROM EMPLOYEE
+WHERE EMP_NAME LIKE '%하%';
 
+-- EMPLOYEE테이블에서 전화번호의 3번째 자리가 1인 사원들의 사번, 사원명, 전화번호, 이메일 조회
+SELECT EMP_ID, EMP_NAME, PHONE, EMAIL
+FROM EMPLOYEE
+WHERE PHONE LIKE '__1%';
 
+-- 이메일 중 (언더바)_ 앞에 3글자인 사원들의 사번, 사원명, 이메일 조회
+SELECT EMP_ID, EMP_NAME, EMAIL
+FROM EMPLOYEE
+WHERE EMAIL LIKE '____%';  -- 언더바 4개
+/*
+    - 와일드카드로 사용되고 있는 문자와 컬럼값에 들어있는 문자가 동일하기 때문에 조회안됨
+      모두 와일드카드로 인식
+        --> 어떤것이 와일드카드이고 데이터값인지 구분지어야 됨
+        --> 데이터값으로 취급하고자하는 값 앞에 나만의 와일드카드(아무거나 문자,숫자,특수기호)를 제시하고
+        --> 나만의 와일드카드를 ESCAPE로 등록
+        ** 특수기호중 '&'는 오라클에서 사용자로부터 입력받는 키워드이므로 안쓰는게 좋음
+*/ 
 
+SELECT EMP_ID, EMP_NAME, EMAIL
+FROM EMPLOYEE
+WHERE EMAIL LIKE '___$_%' ESCAPE '$';  -- $뒤는 컬럼값을 의미
 
+-- 위의 사원을 제외한 사원들 조회
+SELECT EMP_ID, EMP_NAME, EMAIL
+FROM EMPLOYEE
+WHERE NOT EMAIL LIKE '___$_%' ESCAPE '$';
 
+------------------- 실습문제----------------------
+--1. EMPLOYEE에서 이름이 '연'으로 끝나는 사원들의 사원명, 입사일 조회
+
+--2. EMPLOYEE에서 전화번호 처음 3자리가 010이 아닌 사원들의 사원명, 전화번호 조회
+
+--3. EMPLOYEE에서 이름에 '하'가 포함되어 있고 급여가 240만원 이상인 사원들의 사원명, 급여조회
+
+--4. DEPARTMENT에서 해외영업부인 부서들의 부서코드, 부서명 조회
 

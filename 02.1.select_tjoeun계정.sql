@@ -396,18 +396,82 @@ WHERE (JOB_CODE = 'J7' OR JOB_CODE = 'J2') AND SALARY >= 2000000;
 
 ------------------- 실습문제----------------------
 --1. 사수가 없고 부서배치도 받지 않은 사원들의 사원명, 사수사번, 부서코드 조회
-
+SELECT EMP_NAME, MANAGER_ID, DEPT_CODE
+FROM EMPLOYEE
+WHERE MANAGER_ID IS NULL AND DEPT_CODE IS NULL;
 
 --2. 연봉(보너스포함X)이 3000만원 이상이고 보너스를 받지 않은 사원들의 사번, 사원명, 연봉, 보너스 조회
-
+SELECT EMP_ID, EMP_NAME, SALARY*12 연봉, BONUS
+FROM EMPLOYEE
+WHERE SALARY*12 >= 30000000 AND BONUS IS NULL;
 
 --3. 입사일이 95/01/01이상이고 부서배치를 받은 사원들의 사번, 사원명, 입사일, 부서코드 조회
-
+SELECT EMP_ID, EMP_NAME, HIRE_DATE, DEPT_CODE
+FROM EMPLOYEE
+WHERE HIRE_DATE >= '95/01/01' AND DEPT_CODE IS NOT NULL;
 
 --4. 급여가 200만원 이상 500만원 이하고 입사일이 01/01/01이상이고 보너스를 받지 않는 사원들의
 --  사번, 사원명, 급여, 입사일, 보너스 조회
+SELECT EMP_ID, EMP_NAME, SALARY, HIRE_DATE, BONUS
+FROM EMPLOYEE
+WHERE SALARY BETWEEN 2000000 AND 5000000
+  AND HIRE_DATE >= '01/01/01'
+  AND BONUS IS NULL;
+  
+--5. 보너스포함 연봉이 NULL이 아니고 이름에 '하'가 포함되어 있는 
+--   사원들의 사번, 사원명, 급여, 보너스포함연봉 조회 (별칭부여)
+SELECT EMP_ID, EMP_NAME, SALARY, (SALARY + SALARY*BONUS)*12 "보너스포함 연봉"
+FROM EMPLOYEE
+-- WHERE (SALARY + SALARY*BONUS)*12 IS NOT NULL
+WHERE SALARY*(1+BONUS)*12 IS NOT NULL
+  AND EMP_NAME LIKE '%하%';
+
+----------------------------------------------------------------------------
+/*
+    <ORDER BY 절>
+    SELECT문 가장 마지막줄에 작성 뿐만 아니라 실행순서도 마지막으로 실행
+    
+    [표현법]
+    SELECT 조회할 컬럼, 컬럼, 산술연산식 AS "별칭", ....
+    FROM 조회할 테이블명
+    WHERE 조건식
+    ORDER BY 정렬기준의 컬럼명 | 별칭 | 컬럼순서 [ASC|DESC] [NULLS FIRST | NULLS LAST];
+    
+    - ASC : 오름차순 정렬(생락시 기본값)
+    - DESC : 내림차순 정렬
+    
+    - NULLS FIRST : NULL값이 있는 경우 데이터의 맨 앞에 배치(생략시 DESC일때 기본값)
+    - NULLS LAST : NULL값이 있는 경우 데이터의 맨 뒤에 배치(생략시 ASC일때 기본값)
+*/
+-- 오름차순 정렬
+SELECT EMP_NAME, BONUS
+FROM EMPLOYEE
+-- ORDER BY BONUS;         오름차순 정렬 기본값 NULL은 LAST
+-- ORDER BY BONUS ASC;
+ORDER BY BONUS NULLS FIRST;
+
+-- 내림차순 정렬
+SELECT EMP_NAME, BONUS
+FROM EMPLOYEE
+-- ORDER BY BONUS DESC;
+ORDER BY BONUS DESC NULLS LAST;
+
+-- 정렬기준을 여러개 사용
+SELECT EMP_NAME, BONUS, SALARY
+FROM EMPLOYEE
+ORDER BY BONUS DESC, SALARY;
+
+-- 전 사원의 사원명, 연봉조회 연봉의 내림차순 정렬조회
+SELECT EMP_NAME, SALARY*12 연봉
+FROM EMPLOYEE
+-- ORDER BY SALARY*12 DESC;
+-- ORDER BY 연봉 DESC;       -- 별칭사용가능
+ORDER BY 2 DESC;            -- 컬럼의 순서(숫자) 가능
 
 
---5. 보너스포함 연봉이 NULL이 아니고 이름에 '하'가 포함되어 있는 사원들의 사번, 사원명, 급여, 보너스포함연봉 조회 (별칭부여)
+
+
+
+
 
 

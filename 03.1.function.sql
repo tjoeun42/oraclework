@@ -88,13 +88,157 @@ WHERE SUBSTR(EMP_NO, 8, 1) IN ('1','3')
 ORDER BY 2;
 
 -- EMPLOYEE테이블에서 EMAIL에서 아이디만 추출하여 사원명, 이메일, 아이디(@이전까지 추출)조회
+SELECT EMP_NAME, EMAIL, SUBSTR(EMAIL, 1, INSTR(EMAIL, '@')-1) 아이디
+FROM EMPLOYEE;
 
+----------------------------------------------------------------------------
+/*
+    * LPAD / RPAD : 문자열을 조회할 때 통일감있게 조회하고자 할 때(반환형 : CHARCTER)
+    
+      LPAD / RPAD('문자열', 최종적으로반환할문자의길이, [덧붙이고자하는문자])
+      문자열에 덧붙이고자하는 문자를 왼쪽 또는 오른쪽에 덧붙여서 최종 N길이만큼의 문자열 반환
+*/
+-- 20길이 중 EMAIL컬럼값은 오른쪽 정렬하고 나머지부분은 공백(왼쪽)으로 채움
+SELECT EMP_NAME, LPAD(EMAIL, 20)
+FROM EMPLOYEE;
 
+SELECT EMP_NAME, LPAD(EMAIL, 20, '#')
+FROM EMPLOYEE;
 
+SELECT EMP_NAME, RPAD(EMAIL, 20, '#')
+FROM EMPLOYEE;
 
+-- EMPLOYEE테이블에서 사번, 사원명, 주민번호 조회(123456-1******의 형식으로 출력) 
+-- 우선 주민번호 추출
+SELECT EMP_ID, EMP_NAME, SUBSTR(EMP_NO, 1, 8)
+FROM EMPLOYEE;
+-- 주민번호 뒤에 * 붙여주기
+SELECT EMP_ID, EMP_NAME, RPAD(SUBSTR(EMP_NO, 1, 8), 14, '*')
+FROM EMPLOYEE;
 
+SELECT EMP_ID, EMP_NAME, SUBSTR(EMP_NO, 1, 8) || '******'
+FROM EMPLOYEE;
 
+----------------------------------------------------------------------------
+/*
+    * LTRIM / RTRIM : 문자열에서 특정문자를 제거한 나머지 반환(반환형 : CHARCTER)
+    * TRIM : 문자열의 앞/뒤 양쪽에 지정한 문자들을 제거한 나머지 반환
+    
+      LTRIM/RTRIM('문자열', [제거하고자하는 문자]) => 제거하고자하는 문자를 생략하면 공백제거
+      TRIM([LEADING|TRAILING|BOTH]제거하고자하는문자들 FROM '문자열']) => 제거하고자하는 문자는 1개만 가능
+*/
 
+SELECT LTRIM('     TJOEUN     ') || '컴퓨터아카데미' FROM DUAL;
+SELECT LTRIM('JAVAJAVASCRIPT', 'JAVA') FROM DUAL;
+SELECT LTRIM('JAVAJAVASCRIPT', 'JAV') FROM DUAL;
+SELECT LTRIM('BACBAACFABCD', 'ABC') FROM DUAL;
+SELECT LTRIM('283980KLSK323', '0123456789') FROM DUAL;
 
+SELECT RTRIM('     TJOEUN     ') || '컴퓨터아카데미' FROM DUAL;
+SELECT RTRIM('BACBADHAFABCB', 'ABC') FROM DUAL;
 
+-- 기본값은 BOTH로 양쪽의 문자들을 제거
+SELECT TRIM(BOTH 'A' FROM 'AAADKS78AAA') FROM DUAL;
+SELECT TRIM('A' FROM 'AAADKS78AAA') FROM DUAL;
+SELECT TRIM(LEADING 'A' FROM 'AAADKS78AAA') FROM DUAL;   --> LTRIM과 같음
+SELECT TRIM(TRAILING 'A' FROM 'AAADKS78AAA') FROM DUAL;  --> RTRIM과 같음
 
+----------------------------------------------------------------------------
+/*
+    * LOWER / UPPER / INITCAP : 문자열을 대소문자로 변환 및 단어의 첫글자만 대문자로 변환
+      
+      LOWER / UPPER / INITCAP('문자열')
+*/
+SELECT LOWER('Java Javascript Oracle') FROM DUAL;
+SELECT UPPER('Java Javascript Oracle') FROM DUAL;
+SELECT initcap('java javascript oracle') FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * CONCAT : 문자열 2개를 전달받아 하나로 합쳐진 결과 반환
+    
+      CONCAT('문자열','문자열')
+*/
+SELECT CONCAT('Oracle','오라클') FROM DUAL;
+SELECT 'Oracle' || '오라클' FROM DUAL;
+
+SELECT CONCAT('Oracle','오라클', '02-123-4567', '강남구') FROM DUAL;
+-- 오라클 낮은 버전에서는 문자열 2개밖에 안됨
+
+----------------------------------------------------------------------------
+/*
+    * REPLACE : 기존문자열을 새로운 문자열로 바꿈
+    
+      REPLACE('문자열', '기존문자열', '바꿀문자열')
+*/
+SELECT REPLACE('ORACLE 공부중', 'ORACLE', '오라클') FROM DUAL;
+
+-- EMPLOYEE테이블에서 사원명, 기존EMAIL, 변경한 이메일(aie.or.kr -> tjoeun.co.kr)하여 조회
+SELECT EMP_NAME, EMAIL, REPLACE(EMAIL, 'aie.or.kr', 'tjoeun.co.kr')
+  FROM EMPLOYEE;
+
+--==============================================================================
+--                                   <숫자처리 함수>
+--==============================================================================
+/*
+    * ABS : 숫자의 절대값
+    
+      ABS(NUMER)
+*/
+SELECT ABS(-10) FROM DUAL;
+SELECT ABS(-3.14) FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * MOD : 두 수를 나눈 나머지값
+    
+      MOD(NUMBER, NUMBER)
+*/
+SELECT MOD(10, 3) FROM DUAL;
+SELECT MOD(10.9, 2) FROM DUAL;  -- 잘 사용안함
+
+----------------------------------------------------------------------------
+/*
+    * ROUND : 반올림한 결과 반환
+    
+      ROUND(NUMER, [위치])
+        - 위치 생략시 위치는 0(즉, 정수로 반올림)
+*/
+SELECT ROUND(12345.67) FROM DUAL;
+SELECT ROUND(123.323) FROM DUAL;
+
+SELECT ROUND(1234.5678, 2) FROM DUAL;
+SELECT ROUND(1234.56, 4) FROM DUAL;
+
+SELECT ROUND(1234.567, -2) FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * CEIL : 무조건 올림
+    
+      CEIL(NUMBER)
+*/
+SELECT CEIL(145.278) FROM DUAL;
+SELECT CEIL(-145.278) FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * FLOOR : 무조건 내림
+    
+      FLOOR(NUMBER)
+*/
+SELECT FLOOR(145.278) FROM DUAL;
+SELECT FLOOR(-145.278) FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * TRUNC : 위치지정 가능한 버림처리 함수
+    
+      TRUNC(NUMBER, [위치])
+*/
+SELECT TRUNC(123.789) FROM DUAL;
+SELECT TRUNC(123.789, 1) FROM DUAL;
+SELECT TRUNC(123.789, -1) FROM DUAL;
+
+SELECT TRUNC(-123.789) FROM DUAL;
+SELECT TRUNC(-123.789, -2) FROM DUAL;

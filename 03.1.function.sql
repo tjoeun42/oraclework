@@ -242,3 +242,219 @@ SELECT TRUNC(123.789, -1) FROM DUAL;
 
 SELECT TRUNC(-123.789) FROM DUAL;
 SELECT TRUNC(-123.789, -2) FROM DUAL;
+
+--==============================================================================
+--                                   <날짜처리 함수>
+--==============================================================================
+/*
+    * SYSDATE : 시스템 날짜 및 시간 반환
+*/
+SELECT SYSDATE FROM DUAL;
+
+----------------------------------------------------------------------------
+/*
+    * MONTHS_BETWEEN(DATE1, DATE2) : 두 날짜 사이의 개월 수 반환
+*/
+SELECT EMP_NAME, HIRE_DATE, SYSDATE-HIRE_DATE 근무일수
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, HIRE_DATE, CEIL(SYSDATE-HIRE_DATE) 근무일수
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, HIRE_DATE, MONTHS_BETWEEN(SYSDATE, HIRE_DATE) 근무개월수
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, HIRE_DATE, CEIL(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) 근무개월수
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, HIRE_DATE, CONCAT(CEIL(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)), '개월차') 근무개월수
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, HIRE_DATE, CEIL(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) || '개월차' 근무개월수
+FROM EMPLOYEE;
+
+----------------------------------------------------------------------------
+/*
+    * ADD_MONTHS(DATE, NUMBER) : 특정날짜에 해당 숫자만큰 개월수를 더해 그 날짜를 반환
+*/
+SELECT ADD_MONTHS(SYSDATE, 6) FROM DUAL;
+
+-- EMPLOYEE테이블에서 사원명, 입사일, 정직원이된 날짜(입사일로부터 6개월 수습) 조회
+SELECT EMP_NAME, HIRE_DATE, ADD_MONTHS(HIRE_DATE, 6) "정직원이된 날짜"
+FROM EMPLOYEE;
+
+----------------------------------------------------------------------------
+/*
+    * NEXT_DAY(DATE, 요일(문자|숫자)) : 특정 날짜 이후에 가까운 해당 요일의 날짜를 반환
+*/
+SELECT SYSDATE, NEXT_DAY(SYSDATE, '월요일') FROM DUAL;
+SELECT SYSDATE, NEXT_DAY(SYSDATE, '월') FROM DUAL;
+
+-- 1:일요일, 2:월요일 ...
+SELECT SYSDATE, NEXT_DAY(SYSDATE, 2) FROM DUAL;
+
+-- 오류 : 현재언어가 KOREA이기 때문
+-- SELECT SYSDATE, NEXT_DAY(SYSDATE, 'MONDAY') FROM DUAL;
+
+-- 언어변경
+ALTER SESSION SET NLS_LANGUAGE = AMERICAN;
+SELECT SYSDATE, NEXT_DAY(SYSDATE, 'MONDAY') FROM DUAL;
+
+ALTER SESSION SET NLS_LANGUAGE = KOREAN;
+
+----------------------------------------------------------------------------
+/*
+    * LAST_DAY(DATE) : 해당 월의 마지막 날짜를 반환해주는 함수
+*/
+SELECT LAST_DAY(SYSDATE) FROM DUAL;
+
+-- EMPLOYEE테이블에서 사원명, 입사일, 입사한달의 마지막 날짜 조회
+SELECT EMP_NAME, HIRE_DATE, LAST_DAY(HIRE_DATE)
+FROM EMPLOYEE;
+
+----------------------------------------------------------------------------
+/*
+    * EXTRACT : 특정날짜로 부터 년도|월|일 값을 추출하여 반환하는 함수(반환형 : NUMBER)
+    
+      EXTRACT(YEAR FROM DATE) : 년도 추출
+      EXTRACT(MONTH FROM DATE) : 월만 추출
+      EXTRACT(DAY FROM DATE) : 일만 추출
+*/
+-- EMPLOYEE테이블에서 사원명, 입사년도, 입사월, 입사일 조회
+SELECT EMP_NAME,
+    EXTRACT(YEAR FROM HIRE_DATE) 입사년도,
+    EXTRACT(MONTH FROM HIRE_DATE) 입사월,
+    EXTRACT(DAY FROM HIRE_DATE) 입사일
+FROM EMPLOYEE
+ORDER BY 입사년도, 입사월, 입사일;
+
+--==============================================================================
+--                                   <형변환 함수>
+--==============================================================================
+/*
+    * TO_CHAR : 숫자 또는 날짜 타입의 값을 문자타입으로 변환시켜주는 함수
+                반환결과를 특정 형식에 맞춰 출력할 수도 있음
+      TO_CHAR(숫자|날짜, [포맷])
+*/
+
+-------------------------------- 숫자타입 -> 문자타입 ----------------------------
+/*
+    9: 해당 자리의 숫자를 의미
+       - 값이 없을 경우 소수점 이상은 공백, 소수점 이하는 0으로 표시
+    0: 해당 자리의 숫자를 의미
+       - 값이 없을 경우 0으로 표시하면 숫자의 길이를 고정적으로 표시할 때 주로 사용
+    FM: 해당 자리값이 없을 경우 자리차지하지 않음
+*/
+SELECT TO_CHAR(1234) FROM DUAL;
+SELECT TO_CHAR(1234, '999999') FROM DUAL;  -- 6칸 확보, 왼쪽정렬, 빈칸공백
+SELECT TO_CHAR(1234, '000000') FROM DUAL;  -- 6칸 확보, 왼쪽정렬, 빈칸0으로 채움
+SELECT TO_CHAR(1234, 'L99999') FROM DUAL;   -- 현재 설정된 나라(LOCAL)의 화폐단위(빈칸공백) : 오른쪽정렬
+
+SELECT TO_CHAR(1234, 'L99,999') FROM DUAL;
+
+SELECT EMP_NAME, 
+        TO_CHAR(SALARY, 'L99,999,999'), 
+        TO_CHAR(SALARY*12, 'L999,999,999') 년봉
+FROM EMPLOYEE;
+
+SELECT TO_CHAR(123.456, 'FM999990.999'),
+        TO_CHAR(1234.45, 'FM9990.999'),
+        TO_CHAR(0.1000, 'FM9990.999'),
+        TO_CHAR(0.1000, 'FM9999.999')
+FROM DUAL;
+
+SELECT TO_CHAR(123.456, '999990.999'),
+        TO_CHAR(123.45, '9990.999'),
+        TO_CHAR(0.1000, '9990.999'),
+        TO_CHAR(0.1000, '9999.999')
+FROM DUAL;
+
+-------------------------------- 날짜타입 -> 문자타입 ----------------------------
+-- 시간
+SELECT TO_CHAR(SYSDATE, 'AM') KOREA,
+        TO_CHAR(SYSDATE, 'PM', 'NLS_DATE_LANGUAGE=AMERICAN') AMERICAN
+FROM DUAL;          -- 'AM','PM' 무엇을 쓰든 상관없음
+
+SELECT TO_CHAR(SYSDATE, 'AM HH:MI:SS') FROM DUAL;   -- HH : 12시간 형식
+SELECT TO_CHAR(SYSDATE, 'HH:MI:SS') FROM DUAL;      
+SELECT TO_CHAR(SYSDATE, 'HH24:MI:SS') FROM DUAL;    -- HH24 : 24시간 형식
+
+-- 날짜
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD DAY') FROM DUAL;    -- 월요일
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD DY') FROM DUAL;     -- 월
+SELECT TO_CHAR(SYSDATE, 'MON, YYYY') FROM DUAL;         -- 9월, 2025
+
+-- 2025년 09월 01일 월요일 출력
+SELECT TO_CHAR(SYSDATE, 'YYYY"년" MM"월" DD"일" DAY') FROM DUAL;
+SELECT TO_CHAR(SYSDATE, 'DL') FROM DUAL;
+
+-- EMPLOYEE에서 사원명, 입사일 조회(출력형식 : 25-09-01)
+SELECT EMP_NAME, TO_CHAR(HIRE_DATE, 'YY-MM-DD')
+FROM EMPLOYEE;
+
+SELECT EMP_NAME, TO_CHAR(HIRE_DATE, 'DL')
+FROM EMPLOYEE;
+
+-- 년도
+/*
+    YY : 현재세기가 앞에 붙는다
+    RR : 50년을 기준으로 50보다 작으면 현재세기, 크거나 같으면 이전세기가 붙는다
+
+    예제)
+    RR일때
+    050101 -> 2005
+    780101 -> 1978
+    
+    YY일때
+    050101 -> 2005
+    780101 -> 2078
+*/
+SELECT TO_CHAR(SYSDATE, 'YYYY'),
+        TO_CHAR(SYSDATE, 'YY'),
+        TO_CHAR(SYSDATE, 'RRRR'),
+        TO_CHAR(SYSDATE, 'RR'),
+        TO_CHAR(SYSDATE, 'YEAR')
+FROM DUAL;
+
+-- 월
+SELECT TO_CHAR(SYSDATE, 'MM'),
+        TO_CHAR(SYSDATE, 'MON'),
+        TO_CHAR(SYSDATE, 'MONTH'),
+        TO_CHAR(SYSDATE, 'RM')
+FROM DUAL;
+
+ALTER SESSION SET NLS_LANGUAGE = AMERICAN;
+
+SELECT TO_CHAR(SYSDATE, 'MM'),
+        TO_CHAR(SYSDATE, 'MON'),
+        TO_CHAR(SYSDATE, 'MONTH'),
+        TO_CHAR(SYSDATE, 'RM')
+FROM DUAL;
+
+ALTER SESSION SET NLS_LANGUAGE = KOREAN;
+
+-- 일
+SELECT TO_CHAR(SYSDATE, 'DDD'), -- 년을 기준으로 몇일째
+        TO_CHAR(SYSDATE, 'DD'), -- 월을 기준으로 몇일째
+        TO_CHAR(SYSDATE, 'D')   -- 일주일을 기준으로 몇일째(일요일이 1일)
+FROM DUAL;
+
+-- 요일
+SELECT TO_CHAR(SYSDATE, 'DAY'),
+        TO_CHAR(SYSDATE, 'DY')
+FROM DUAL;
+
+--------------------------- 숫자 또는 문자타입 -> 날짜타입 ------------------------
+/*
+    * TO_DATE : 숫자 또는 문자타입을 날짜타입으로 변환
+    
+      TO_DATE(숫자|문자, [포맷])
+*/
+SELECT TO_DATE(20100901) FROM DUAL;
+SELECT TO_DATE(100901) FROM DUAL;
+
+SELECT TO_DATE(010901) FROM DUAL;       -- 숫자는 앞이 0일때 0을 제거하므로 오류
+SELECT TO_DATE('010901') FROM DUAL;     -- 0이 앞에 붙으면 문자열로 넣어준다
+
+
+

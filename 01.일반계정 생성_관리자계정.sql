@@ -51,3 +51,12 @@ alter user 계정명 quota unlimited on users;
 
 -- user 삭제
 drop user ji CASCADE;  -- 테이블이 있을때는 cascade를 붙여준다
+
+-- WORKBOOK 사용자를 생성하려면
+alter SESSION set "_oracle_script" = true;
+create user workbook identified by 1234;
+grant CONNECT, RESOURCE to workbook;
+alter user workbook quota unlimited on users;
+
+
+

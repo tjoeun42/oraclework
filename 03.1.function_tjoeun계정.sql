@@ -456,5 +456,68 @@ SELECT TO_DATE(100901) FROM DUAL;
 SELECT TO_DATE(010901) FROM DUAL;       -- 숫자는 앞이 0일때 0을 제거하므로 오류
 SELECT TO_DATE('010901') FROM DUAL;     -- 0이 앞에 붙으면 문자열로 넣어준다
 
+SELECT TO_DATE('041028 103000', 'YYMMDD HHMISS') FROM DUAL;
+-- SELECT TO_DATE('041028 143000', 'YYMMDD HHMISS') FROM DUAL;  -- 오류 : 오전 오후로 14시는 없음
+SELECT TO_DATE('041028 143000', 'YYMMDD HH24MISS') FROM DUAL;
 
+SELECT TO_CHAR(TO_DATE('041028 103000', 'YYMMDD HHMISS'), 'YY-MM-DD HH:MI:SS') FROM DUAL;
+
+SELECT TO_DATE('040725', 'YYMMDD') FROM DUAL;   -- 현재세기
+SELECT TO_DATE('970725', 'YYMMDD') FROM DUAL;   -- 현재세기
+SELECT TO_CHAR(TO_DATE('970725', 'YYMMDD'), 'YYYY-MM-DD') FROM DUAL;
+
+SELECT TO_DATE('040725', 'RRMMDD') FROM DUAL;   -- 현재세기
+SELECT TO_DATE('970725', 'RRMMDD') FROM DUAL;   -- 이전세기
+SELECT TO_CHAR(TO_DATE('970725', 'RRMMDD'), 'RRRR-MM-DD') FROM DUAL;
+
+-------------------------------- 문자타입 -> 숫자타입 ----------------------------
+/*
+    * TO_NUMBER : 문자 타입의 데이털를 숫자타입으로 변환
+    
+      TO_NUMBER(문자, [포맷])
+*/
+SELECT TO_NUMBER('0123401234') FROM DUAL;
+SELECT '1000000' + '550000' FROM DUAL;      -- 자동 형변환(숫자로)
+-- SELECT '1,000,000' + '550,000' FROM DUAL;   -- 오류 숫자이외의 컴마(,) 특수기호가 있으면 자동형변환안됨
+SELECT TO_NUMBER('1,000,000', '9,999,999') + TO_NUMBER('550,000','999,999') FROM DUAL;
+
+--==============================================================================
+--                                   <NULL처리 함수>
+--=============================================================================
+/*
+    * NVL(컬럼, 해당컬럼값이 NULL일때 반환할 값)
+*/
+SELECT EMP_NAME, NVL(BONUS, 0)
+  FROM EMPLOYEE;
+  
+-- 전사원의 이름, 보너스포함 연봉
+SELECT EMP_NAME, (SALARY + (SALARY*NVL(BONUS,0)))*12
+FROM EMPLOYEE;
+
+-- 전사원의 사원명, 부서코드조회(만약 부서코드가 NULL이면 '부서없음'으로 출력)
+SELECT EMP_NAME, NVL(DEPT_CODE, '부서없음')
+  FROM EMPLOYEE;
+  
+-------------------------------------------------------------------------------
+/*    
+    * NVL2(컬럼, 반환값1, 반환값2)
+      - 컬럼값이 존재하면 반환값1
+      - 컬럼값이 없으면 반환값2
+*/
+-- EMPLOYEE에서 사원명, 급여, 보너스, 성과급(보너스를 받는사람은 50%, 보너스를 못받는사람은 10%)
+SELECT EMP_NAME, SALARY, BONUS, SALARY * NVL2(BONUS, 0.5, 0.1) 성과급
+FROM EMPLOYEE;
+
+-- EMPLOYEE에서 사원명, 부서(부서에 속해있으면 '부서있음', 부서에 속하지 않으면 '부서없음')
+SELECT EMP_NAME, NVL2(DEPT_CODE, '부서있음', '부서없음')
+  FROM EMPLOYEE;
+
+-------------------------------------------------------------------------------
+/*    
+    * NULLIF(비교대상1, 비교대상2)
+      - 2개의 값이 일치하면 NULL반환
+      - 2개의 값이 다르면 비교대상1 값을 반환
+*/
+SELECT NULLIF('123','123') FROM DUAL;
+SELECT NULLIF('123','456') FROM DUAL;
 

@@ -540,7 +540,11 @@ SELECT NULLIF('123','456') FROM DUAL;
 
 -- EMPLOYEE테이블에서 사번, 사원명, 주민번호, 성별
 SELECT EMP_ID, EMP_NAME, EMP_NO, 
-DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여', '3','남','여') || '자' 성별
+       DECODE(SUBSTR(EMP_NO, 8, 1), 
+                '1', '남', 
+                '2', '여', 
+                '3', '남',
+                     '여') 성별
 FROM EMPLOYEE;
 
 -- EMPLOYEE테이블에서 사번, 사원명, 직급코드, 각 직급별로 인상한 급여 조회

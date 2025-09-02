@@ -527,7 +527,8 @@ SELECT NULLIF('123','456') FROM DUAL;
 /*
     * DECODE(비교하고자하는 대상(컬럼|산술연사|함수식), 비교값1, 결과값1, 비교값2, 결과값2, ...)
     
-    SWITCH(비교대상) {
+    * 프로그램의 SWITCH와 같음
+      SWITCH(비교대상) {
         CASE 비교값1:
             결과값1;
         CASE 비교값2:
@@ -535,7 +536,7 @@ SELECT NULLIF('123','456') FROM DUAL;
         ...
         DEFALUT :
             결과값N;
-    }
+      }
 */
 
 -- EMPLOYEE테이블에서 사번, 사원명, 주민번호, 성별
@@ -547,17 +548,65 @@ SELECT EMP_ID, EMP_NAME, EMP_NO,
                      '여') 성별
 FROM EMPLOYEE;
 
--- EMPLOYEE테이블에서 사번, 사원명, 직급코드, 각 직급별로 인상한 급여 조회
+-- EMPLOYEE테이블에서 사번, 사원명, 직급코드, 급여, 각 직급별로 인상한 급여 조회
     -- J7인 사원은 급여를 10% 인상
     -- J6인 사원은 급여를 15% 인상
     -- J5인 사원은 급여를 20% 인상
     -- 이외 모든 사원은 급여를 5%인상
+SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY,
+        DECODE(JOB_CODE, 'J7', SALARY*1.1,
+                         'J6', SALARY*1.15,
+                         'J5', SALARY*1.2,
+                               SALARY*1.05) "인상된 급여"
+FROM EMPLOYEE;
 
+--------------------------------------------------------------------------------
+/*
+    * CASE WHEN THEN
+      END
+      
+      CASE WHEN 조건식1 THEN 결과값1
+           WHEN 조건식2 THEN 결과값2
+           ...
+           ELSE 결과값N
+      END
+      
+      * 프로그램의 if-else와 동일
+        if(조건식1)
+            결과값1
+        else if(조건식2)
+            결과값2
+        ...
+        else
+            결과값N
+*/
+-- EMPLOYEE테이블에서 사원명, 급여, 급여에 따른 등급
+   -- 고급 : 5백만원 이상 인 사원
+   -- 중급 : 5백만원 미만 ~ 3백만원 이상 인 사원
+   -- 초급 : 3백만원 미만 인 모든 사원
+SELECT EMP_NAME, SALARY,
+        CASE WHEN SALARY >= 5000000 THEN '고급'
+             WHEN SALARY >= 3000000 THEN '중급'
+             ELSE '초급'
+        END 등급
+FROM EMPLOYEE;
 
+--==============================================================================
+--                                   <그룹 함수>
+--==============================================================================
+/*
+    * SUM(컬럼(NUMBER타입)) : 해당 컬럼값들의 총 합계를 구해 반환하는 함수
+*/
+-- EMPLOYEE테이블에서 전 사원의 급여의 합
+SELECT SUM(SALARY)
+FROM EMPLOYEE;
 
-
-
-
+-- EMPLOYEE테이블에서 남자 사원의 급여의 합
+SELECT SUM(SALARY) "남자 사원의 총급여"
+FROM EMPLOYEE
+-- WHERE SUBSTR(EMP_NO, 8, 1) IN('1', '3');
+-- WHERE DECODE(SUBSTR(EMP_NO, 8, 1), '1','남','3','남') = '남'
+WHERE DECODE(SUBSTR(EMP_NO, 8, 1), '1','남','2','여','3','남','여') = '남'
 
 
 

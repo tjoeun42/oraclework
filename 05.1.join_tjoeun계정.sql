@@ -262,5 +262,57 @@ SELECT E.EMP_ID, E.EMP_NAME, E.DEPT_CODE,
   FROM EMPLOYEE E, EMPLOYEE M
  WHERE E.MANAGER_ID = M.EMP_ID;
 
+--  모든 사원의 사수(NULL포함) 조회
+SELECT E.EMP_ID, E.EMP_NAME, E.DEPT_CODE,
+               M.EMP_ID, M.EMP_NAME, M.DEPT_CODE
+  FROM EMPLOYEE E, EMPLOYEE M
+ WHERE E.MANAGER_ID = M.EMP_ID(+);
 
+--  >> ANSI 구문
+--  모든 사원의 사수(NULL포함) 조회
+SELECT E.EMP_ID, E.EMP_NAME, E.DEPT_CODE,
+               M.EMP_ID, M.EMP_NAME, M.DEPT_CODE
+  FROM EMPLOYEE E
+LEFT JOIN EMPLOYEE M ON (E.MANAGER_ID = M.EMP_ID); 
 
+-----------------------------------------------------------------------------
+/*
+    <다중 JOIN>
+    2개 이상의 테이블을 가지고 JOIN할 때
+*/
+-- 서로 매칭되는 테이블의 컬럼
+/*
+    EMPLOYEE    DEPT_CODE   JOB_CODE
+    DEPARTMENT  DEPT_ID
+    JOB                     JOB_CODE
+*/
+-- 전사원들의 사번, 사원명, 부서명, 직급명 조회
+--   >> 오라클 전용 구문
+SELECT EMP_ID, EMP_NAME, DEPT_TITLE, JOB_NAME
+  FROM EMPLOYEE E, DEPARTMENT, JOB J
+  WHERE DEPT_CODE = DEPT_ID(+)
+-- WHERE DEPT_CODE = DEPT_ID   -- DEPT_CODE가 NLL인사원 제외
+   AND E.JOB_CODE = J.JOB_CODE; 
+
+--   >> ANSI 구문
+SELECT EMP_ID, EMP_NAME, DEPT_TITLE, JOB_NAME
+  FROM EMPLOYEE
+LEFT JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+-- JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)   -- DEPT_CODE가 NLL인사원 제외
+  JOIN JOB USING (JOB_CODE);
+  
+-- 사원들의 사원명, 부서명, 지역명조회
+--   >> 오라클 전용 구문
+
+--   >> ANSI 구문
+
+------------------------------------------  실습 문제  -------------------------------------------
+-- 1. 사번, 사원명, 부서명, 지역명, 국가명 조회(EMPLOYEE, DEPARTMENT, LOCATION, NATIONAL 조인)
+--  >> 오라클 전용 구문
+
+--  >> ANSI 구문
+
+-- 2. 사번, 사원명, 부서명, 직급명, 지역명, 국가명, 급여등급 조회 (모든 테이블 다 조인)
+--  >> 오라클 전용 구문
+
+--  >> ANSI 구문

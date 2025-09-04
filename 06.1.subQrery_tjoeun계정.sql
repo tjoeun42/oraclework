@@ -237,8 +237,189 @@ SELECT EMP_NAME, DEPT_CODE, JOB_CODE, HIRE_DATE
                                  WHERE EMP_NAME = '장정보');
 
 -- 지정보 사원과 같은 직급코드, 같은 사수를 가지고 있는 사원들의 사번, 사원명, 직급코드, 사수사번 조회
+SELECT EMP_ID, EMP_NAME, JOB_CODE, MANAGER_ID
+  FROM EMPLOYEE
+ WHERE (JOB_CODE, MANAGER_ID) = (SELECT JOB_CODE, MANAGER_ID
+                                   FROM EMPLOYEE
+                                  WHERE EMP_NAME = '지정보');
+
+-------------------------------------------------------------------------------
+/*
+    4. 다중행 다중열 서브쿼리
+        서브쿼리를 수행한 결과값이 여러행 여러열일 때(여러행 여러열)
+*/
+-- 1. 각 직급별 최소급여 금액을 받는 사원의 사번, 사원명, 직급코드, 급여조회
+--    1.1 각 직급별 최소급여 금액과 직급코드 조회
+SELECT JOB_CODE, MIN(SALARY)
+  FROM EMPLOYEE
+ GROUP BY JOB_CODE;  
+
+SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY
+  FROM EMPLOYEE
+ GROUP BY JOB_CODE = 'J1' AND SALARY = 8000000
+       OR JOB_CODE = 'J2' AND SALARY = 3700000
+            ... ;
+
+SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY
+  FROM EMPLOYEE
+ WHERE (JOB_CODE, SALARY) = ('J1', 8000000)
+    OR (JOB_CODE, SALARY) = ('J2', 3700000)
+        ...;
+        
+-- 서브쿼리로
+SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY
+  FROM EMPLOYEE
+ WHERE (JOB_CODE, SALARY) IN (SELECT JOB_CODE, MIN(SALARY)
+                                FROM EMPLOYEE
+                               GROUP BY JOB_CODE); 
+                               
+-- 2. 각 부서별 최고급여를 받는 사원들의 사번, 사원명, 부서코드, 급여조회
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+  FROM EMPLOYEE
+ WHERE (DEPT_CODE, SALARY) IN (SELECT DEPT_CODE, MAX(SALARY)
+                                 FROM EMPLOYEE
+                                GROUP BY DEPT_CODE);
+
+
+-------------------------------------------------------------------------------
+/*
+    5. 인라인 뷰(INLINE VIEW)
+       FROM절에 서브쿼리를 작성
+       
+       서브쿼리를 수행할 결과를 마치 테이블처럼 사용
+*/
+-- 사원들의 사번, 사원명, 보너스를 포함한 연봉(별칭부여), 부서코드 조회
+--  => 연봉에 NULL이 나오지 않게 조회
+--  단, 보너스포함 연봉이 4000만원이상인 사원들만 조회
+
+-- SELECT EMP_ID, EMP_NAME, (SALARY + (SALARY*NVL(BONUS, 0)))*12 "연봉(보너스포함)", DEPT_CODE
+SELECT EMP_ID, EMP_NAME, SALARY*NVL(1+BONUS, 1)*12 연봉, DEPT_CODE
+  FROM EMPLOYEE;
+ WHERE SALARY*NVL(1+BONUS, 1)*12 >= 40000000;
+ 
+-- WHERE절에 별칭으로 사용하고 싶으면 INLINE VIEW사용
+SELECT *
+  FROM (SELECT EMP_ID, EMP_NAME, SALARY*NVL(1+BONUS, 1)*12 연봉, DEPT_CODE
+          FROM EMPLOYEE);  -- 테이블처럼 사용
+  
+SELECT *
+  FROM (SELECT EMP_ID, EMP_NAME, SALARY*NVL(1+BONUS, 1)*12 연봉, DEPT_CODE
+          FROM EMPLOYEE)
+ WHERE 연봉 >= 40000000;
+
+SELECT EMP_NAME, 연봉, DEPT_CODE
+  FROM (SELECT EMP_ID, EMP_NAME, SALARY*NVL(1+BONUS, 1)*12 연봉, DEPT_CODE
+          FROM EMPLOYEE)
+ WHERE 연봉 >= 40000000;
+ 
+SELECT EMP_NAME, 연봉, DEPT_CODE, PHONE
+  FROM (SELECT EMP_ID, EMP_NAME, SALARY*NVL(1+BONUS, 1)*12 연봉, DEPT_CODE
+          FROM EMPLOYEE)
+ WHERE 연봉 >= 40000000;   -- 오류 : FROM뒤의 테이블에는 PHONE라는 컬럼이 없어서
+
+-- >> 인라인 뷰는 주로 TOP-N분석(상위 몇위만 가져오기)
+
+-- 전 직원 중 급여가 가장 높은 상위 5명만 조회
+--   * ROWNUM : 오라클에서 제공해주는 컬럼. 조회된 순서대로 1부터 순번을 부여해주는 컬럼
+SELECT ROWNUM, EMP_NAME, SALARY
+  FROM EMPLOYEE;
+  
+-- 급여의 내림차순 정렬로 조회
+SELECT ROWNUM, EMP_NAME, SALARY
+  FROM EMPLOYEE
+ ORDER BY SALARY DESC;
+-- 수행순서 : FROM -> SELECT -> ORDER 
+ 
+-- FROM -> SELECT -> ORDER -> ROWNUM
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY
+          FROM EMPLOYEE
+         ORDER BY SALARY DESC);
+
+SELECT ROWNUM, EMP_NAME, SALARY
+  FROM (SELECT EMP_NAME, SALARY
+          FROM EMPLOYEE
+         ORDER BY SALARY DESC);
+         
+SELECT ROWNUM, *
+  FROM (SELECT EMP_NAME, SALARY
+          FROM EMPLOYEE
+         ORDER BY SALARY DESC);  -- 오류 
+
+-- 테이블에 별칭 부여      
+SELECT ROWNUM, E.*
+  FROM (SELECT EMP_NAME, SALARY
+          FROM EMPLOYEE
+         ORDER BY SALARY DESC) E
+ WHERE ROWNUM <= 5;
+
+-- 가장 최근에 입사한 사원 5명의 사원명, 급여, 입사일 조회
+SELECT EMP_NAME, SALARY, HIRE_DATE
+  FROM (SELECT *
+          FROM EMPLOYEE
+         ORDER BY HIRE_DATE DESC)
+ WHERE ROWNUM <= 5;
+
+-- 각 부서별 평균급여가 높은 3개의 부서의 부서코드, 평균급여 조회
+SELECT *
+  FROM (SELECT DEPT_CODE, CEIL(AVG(SALARY)) 평균급여
+          FROM EMPLOYEE
+         GROUP BY DEPT_CODE
+         ORDER BY 2 DESC)
+ WHERE ROWNUM <= 3;
+
+-------------------------------------------------------------------------------
+/*
+    6. WITH
+        서브쿼리에 이름을 붙여주고 인라인뷰로 사용시 서브쿼리의 이름으로 FROM절에 기술
+        한번의 SQL문장에서만 유효
+        
+      - 장점
+        가독성이 좋다
+        같은 서브쿼리가 여러번 사용될 경우 중복 작성을 피할수 있음
+        실행속도도 빨라짐
+*/
+WITH TOPN_SAL AS (SELECT DEPT_CODE, CEIL(AVG(SALARY)) 평균급여
+                    FROM EMPLOYEE
+                   GROUP BY DEPT_CODE
+                   ORDER BY 2 DESC)
+/*
+SELECT DEPT_CODE, 평균급여
+  FROM TOPN_SAL
+ WHERE ROWNUM <= 3;
+*/
+SELECT *
+  FROM TOPN_SAL
+ WHERE ROWNUM <= 3;
+
+-------------------------------------------------------------------------------
+/*
+    <순위 매기는 함수>
+    * RANK() OVER(정렬기준) | DENSE_RANK() OVER(정렬기준)
+      : SELECT절에서만 사용
+      - RANK() OVER(정렬기준) : 동일한 순위 이후의 등수를 동일한 인원 수 만큼 건너뛰고 순위 계산
+                                EX) 공동1위가 2명이면 그 다음 순위는 3위
+      - DENSE_RANK() OVER(정렬기준) : 동일한 순위 이후의 등수는 무조건 1증가한 등수
+                                EX) 공동1위가 2명이면 그 다음 순위는 2위                        
+*/
+-- 급여가 높은 순서대로 순위를 매겨서 사원명, 급여, 순위를 조회
+SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) 순위
+  FROM EMPLOYEE;
+-- 공동 19위 2명, 그 뒤 순위는 21위
+
+SELECT EMP_NAME, SALARY, DENSE_RANK() OVER(ORDER BY SALARY DESC) 순위
+  FROM EMPLOYEE; 
+-- 공동 19위 2명, 그 뒤 순위는 20위
+
+-- 급여가 상위 5위인 사원명, 급여, 순위 조회
+SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) 순위
+  FROM EMPLOYEE
+ WHERE RANK() OVER(ORDER BY SALARY DESC) <= 5; 
 
 
 
 
 
+
+  
+  

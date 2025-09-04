@@ -396,7 +396,7 @@ SELECT *
 /*
     <순위 매기는 함수>
     * RANK() OVER(정렬기준) | DENSE_RANK() OVER(정렬기준)
-      : SELECT절에서만 사용
+         : SELECT절에서만 사용
       - RANK() OVER(정렬기준) : 동일한 순위 이후의 등수를 동일한 인원 수 만큼 건너뛰고 순위 계산
                                 EX) 공동1위가 2명이면 그 다음 순위는 3위
       - DENSE_RANK() OVER(정렬기준) : 동일한 순위 이후의 등수는 무조건 1증가한 등수
@@ -414,9 +414,20 @@ SELECT EMP_NAME, SALARY, DENSE_RANK() OVER(ORDER BY SALARY DESC) 순위
 -- 급여가 상위 5위인 사원명, 급여, 순위 조회
 SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) 순위
   FROM EMPLOYEE
- WHERE RANK() OVER(ORDER BY SALARY DESC) <= 5; 
+ WHERE RANK() OVER(ORDER BY SALARY DESC) <= 5; -- SELECT절에서만 사용 가능
+ 
+-- 인라인 뷰를 쓸 수밖에 없음 
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) 순위
+          FROM EMPLOYEE)
+ WHERE 순위 <= 5;
 
-
+-- WITH 사용 가능
+WITH TOPN_SALARY AS (SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) 순위
+                       FROM EMPLOYEE)
+SELECT *
+  FROM TOPN_SALARY
+ WHERE 순위 <= 5; 
 
 
 

@@ -73,3 +73,138 @@ COMMENT ON COLUMN MEMBER.MEM_DATE IS '회원가입일';
 -- INSERT INTO 테이블명 VALUES();
 INSERT INTO MEMBER VALUES(1, 'user01', 'pass01', '김민준', '남', '010-1234-5678', 'kim@naver.com', '25/09/01');
 INSERT INTO MEMBER VALUES(2, 'user02', 'pass02', '이서연', '여', null, null, sysdate);
+
+INSERT INTO MEMBER VALUES(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+--------------------------------------------------------------------------------
+/*
+    <제약 조건 CONSTRAINTS>
+    - 원하는 데이터값(유효한 형식의 값)만 유지하기 위해 특정 컬럼에 설정하는 제약
+    - 데이터 무결성 보장을 목적으로 한다
+      : 데이터에 결함이 없는 상태, 즉 데이터가 정확하고 유효하게 유지된 상태
+      1) 개체 무결성 제약 조건 : NOT NULL, UNIQUE, PRIMARY KEY 조건 위배
+      2) 참조 무결성 제약 조건 : FOREIGN KEY(외래키) 조건 위배
+      
+    * 종류 : NOT NULL, UNIQUE, PRIMARY KEY, CHECK(조건), FOREIGN KEY  
+    
+    * 제약조건을 부여하는 방식 2가지
+      1) 컬럼 레벨 방식 : 컬럼명 자료형 옆에 기술
+      2) 테이블 레벨 방식 : 모든 컬럼들을 나열한 수 마지막에 기술
+*/
+
+
+/*
+    * NOT NULL 제약조건
+     : 해당 컬럼에 반드시 값이 존재해야만 할 경우(즉, 해당 컬럼에 절대 NULL이 들어와서는 안되는 경우)
+       삽입 / 수정시 NULL값을 허용하지 않도록 제한
+     
+      ** 주의사항 : 오로지 컬럼레벨 방식 밖에 안됨
+*/
+-- 컬럼 레벨 방식 
+CREATE TABLE MEM_NOTNULL (
+    MEM_NO NUMBER NOT NULL,
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(13),
+    EMAIL VARCHAR2(50)
+);
+
+INSERT INTO MEM_NOTNULL VALUES(1, 'user01', 'pass01', '임지아', '여', null, null);
+INSERT INTO MEM_NOTNULL VALUES(2, 'user02', null, '백승민', '남', null, 'abc@google.com');
+-- NOT NULL 제약조건 위반으로 오류 발생
+
+INSERT INTO MEM_NOTNULL VALUES(2, 'user01', 'pas02', '백승민', '남', null, 'abc@google.com');
+-- ID가 중복되어도 잘 추가됨
+
+--------------------------------------------------------------------------------
+/*
+    * UNIQUE 제약 조건
+      해당 컬럼에 중복된 값이 들어가서는 안 되는 경우
+      컬럼값에 중복값을 제한하는 제약조건
+      삽입 / 수정시 기존에 있는 데이터 중 중복값이 있을 경우 오류 발생
+*/
+-- 컬럼 레벨 방식
+CREATE TABLE MEM_UNIQUE (
+    MEM_NO NUMBER NOT NULL UNIQUE,
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(13),
+    EMAIL VARCHAR2(50)
+);
+
+-- 테이블 레벨 방식
+-- MEM_UNIQUE2  => MEM_ID에 UNIQUE
+CREATE TABLE MEM_UNIQUE2 (
+    MEM_NO NUMBER NOT NULL,
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(13),
+    EMAIL VARCHAR2(50),
+    UNIQUE (MEM_ID)
+);
+INSERT INTO MEM_UNIQUE2 VALUES(1, 'user01', 'pass01', '강하영',null,null,null); 
+INSERT INTO MEM_UNIQUE2 VALUES(2, 'user01', 'pass02', '백승민',null,null,null);
+-- UNIQUE 제약조건 위배 되므로 INSERT 실패
+
+
+-- MEM_UNIQUE3  => MEM_ID에 UNIQUE, MEM_NO에 UNIQUE
+CREATE TABLE MEM_UNIQUE3 (
+    MEM_NO NUMBER NOT NULL,
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(13),
+    EMAIL VARCHAR2(50),
+    UNIQUE (MEM_NO),
+    UNIQUE (MEM_ID)
+);
+INSERT INTO MEM_UNIQUE3 VALUES(1, 'user01', 'pass01', '강하영',null,null,null);
+INSERT INTO MEM_UNIQUE3 VALUES(2, 'user01', 'pass02', '백승민',null,null,null);
+-- MEM_ID의 UNIQUE제약조건 위배
+INSERT INTO MEM_UNIQUE3 VALUES(1, 'user02', 'pass02', '백승민',null,null,null);
+-- MEM_NO의 UNIQUE제약조건 위배
+
+
+-- MEM_UNIQUE4  => MEM_ID와 MEM_NO에(조합으로) UNIQUE
+CREATE TABLE MEM_UNIQUE4 (
+    MEM_NO NUMBER NOT NULL,
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(13),
+    EMAIL VARCHAR2(50),
+    UNIQUE (MEM_NO, MEM_ID)
+);
+
+INSERT INTO MEM_UNIQUE4 VALUES(1, 'user01', 'pass01', '강하영',null,null,null);
+INSERT INTO MEM_UNIQUE4 VALUES(2, 'user01', 'pass02', '백승민',null,null,null);
+INSERT INTO MEM_UNIQUE4 VALUES(2, 'user02', 'pass03', '이시우',null,null,null);
+INSERT INTO MEM_UNIQUE4 VALUES(2, 'user02', 'pass04', '김강철',null,null,null);
+
+--------------------------------------------------------------------------------
+/*
+    * 제약 조건 부여시 제약조건명까지 지어주는 방법
+    
+    >> 컬럼 레벨 방식
+       CRATE TABLE 테이블명 (
+            컬럼명 자료형 [CONSTRAINT 제약조건명] 제약조건,
+            컬럼명 자료형
+            ...
+       );
+       
+    >> 테이블 레벨 방식
+       CRATE TABLE 테이블명(
+            컬럼명 자료형,
+            컬럼명 자료형,
+            ...
+            [CONSTRAINT 제약조건명] 제약조건 (컬럼)
+       );
+*/

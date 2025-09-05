@@ -453,4 +453,74 @@ CREATE TABLE MEMBER2(
     HOBBY VARCHAR2(20) DEFAULT '없음',
     MEM_DATE DATE DEFAULT SYSDATE
 );
- 
+INSERT INTO MEMBER2 VALUES(1, '나원경', '운동', '21/11/15');
+INSERT INTO MEMBER2 VALUES(2, '나원경', NULL, NULL);
+INSERT INTO MEMBER2 VALUES(3, '나원경', DEFAULT, DEFAULT);
+
+INSERT INTO MEMBER2 (MEM_NO, MEM_NAME) VALUES(4,'임차반');
+
+--==============================================================================
+/*
+    =============================== tjoeun 계정 =================================
+    <SUBQUERY를 이용한 테이블 생성>
+    테이블을 복사하는 개념
+    
+    [표현식]
+    CREATE TABLE 테이블명
+    AS 서브쿼리;
+*/
+-- EMPLOYEE 테이블을 복제한 새로운 테이블 생성
+CREATE TABLE EMPLOYEE_COPY
+AS SELECT *
+     FROM EMPLOYEE;
+  -- 컬럼, 데이터값 등은 복사
+  -- 제약조건 같은 경우 NOT NULL만 복사됨
+  -- DEFAULT, COMMENT는 복사 안됨
+
+-- 데이터는 필요없고, 구조만 복사하고자 할 때
+CREATE TABLE EMPLOYEE_COPY2
+AS SELECT EMP_ID, EMP_NAME, SALARY, BONUS
+     FROM EMPLOYEE
+    WHERE 1=0; 
+
+-- 기존 테이블의 구조에 없는 컬럼을 만들때
+CREATE TABLE EMPLOYEE_COPY3
+AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY*12
+     FROM EMPLOYEE;
+-- 서브쿼리 SELECT절에 산술식 또는 함수식 기술된 경우 반드시 별칭 지정해야됨
+
+CREATE TABLE EMPLOYEE_COPY3
+AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY*12 연봉
+     FROM EMPLOYEE;
+     
+----------------------------------------------------------------------------
+/*
+    * 테이블을 다 생성한 후에 제약조건 추가
+      ALTER TABLE 테이블명 변경할내용;
+      
+      - PRIMARY KEY : ALTER TABLE 테이블명 ADD PRIMARY KEY(컬럼명);
+      - FOREIGN KEY : ALTER TABLE 테이블명 ADD FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명 [(참조할컬럼명)];
+      - UNIQUE : ALTER TABLE 테이블명 ADD UNIQUE(컬럼명);
+      - CHECK : ALTER TABLE 테이블명 ADD CHECK(컬럼에 대한 조건식);
+      - NOT NULL : ALTER TABLE 테이블명 MODIFY 컬럼명 NOT NULL;
+      - DEFAULT : ALTER TABLE 테이블명 MODIFY 컬럼명 DEFAULT 값;
+*/
+-- EMPLOYEE_COPY 테이블에 PRIMARY KEY 추가
+ALTER TABLE EMPLOYEE_COPY ADD PRIMARY KEY(EMP_ID);
+
+-- EMPLOYEE_COPY 테이블의 DEPT_CODE에 외래키 추가(참조 : DEPARTMENT (DEPT_ID))
+ALTER TABLE EMPLOYEE_COPY ADD FOREIGN KEY(DEPT_CODE) REFERENCES DEPARTMENT;
+
+-- EMPLOYEE_COPY 테이블의 JOB_CODE에 외래키 추가(참조 : JOB (JOB_CODE))
+ALTER TABLE EMPLOYEE_COPY ADD FOREIGN KEY(JOB_CODE) REFERENCES JOB;
+
+-- DEPARTMENT 테이블의 LOCATION_ID에 외래키 추가(LOCATION테이블)
+ALTER TABLE DEPARTMENT ADD FOREIGN KEY(LOCATION_ID) REFERENCES LOCATION;
+
+-- EMPLOYEE_COPY 테이블의 ENT_YN에 DEFAULT값 'N' 수정
+ALTER TABLE EMPLOYEE_COPY MODIFY ENT_YN DEFAULT 'N';
+
+-- EMPLOYEE_COPY 테이블에 COMMENT 넣기
+COMMENT ON COLUMN EMPLOYEE_COPY.EMP_ID IS '회원번호';
+COMMENT ON COLUMN EMPLOYEE_COPY.EMP_NAME IS '회원명';
+COMMENT ON COLUMN EMPLOYEE_COPY.EMP_NO IS '주민등록번호';

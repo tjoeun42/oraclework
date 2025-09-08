@@ -1,0 +1,10 @@
+-- 3.
+create table tb_국어국문학과
+as select student_no
+        , student_name
+        , EXTRACT(YEAR FROM TO_DATE(SUBSTR(STUDENT_SSN, 1, 2), 'RRRR')) 출생년도
+        , NVL(PROFESSOR_NAME, '지도교수 없음') PROFESSOR_NAME
+    FROM TB_STUDENT S
+LEFT JOIN TB_PROFESSOR ON (COACH_PROFESSOR_NO = PROFESSOR_NO)
+LEFT JOIN TB_DEPARTMENT D ON (S.DEPARTMENT_NO = D.DEPARTMENT_NO)
+WHERE DEPARTMENT_NAME = '국어국문학과';

@@ -106,6 +106,76 @@ END;
     
     사용자가 입력 사번의 사번, 사원명, 직급코드, 급여, 부서명 조회한 후 각 변수에 담아 출력
 */
+DECLARE
+    EID EMPLOYEE.EMP_ID%TYPE;
+    ENAME EMPLOYEE.EMP_NAME%TYPE;
+    JCODE EMPLOYEE.JOB_CODE%TYPE;
+    SAL EMPLOYEE.SALARY%TYPE;
+    DTITLE DEPARTMENT.DEPT_TITLE%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY, DEPT_TITLE
+      INTO EID, ENAME, JCODE, SAL, DTITLE
+      FROM EMPLOYEE
+      JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+     WHERE EMP_ID = &사번;
+     
+     DBMS_OUTPUT.PUT_LINE(EID || ', ' || ENAME || ', ' || JCODE || ', ' ||SAL || ', ' ||DTITLE);
+END;
+/
+
+------------------------------------------------------------------------
+/*
+    3) ROW타입 변수
+       테이블의 한 행에 대한 모든 컬럼값을 한꺼번에 담을 수 있는 변수
+       
+       [표현법]
+       변수명 테이블명%ROWTYPE;
+*/
+
+DECLARE
+    E EMPLOYEE%ROWTYPE;
+BEGIN
+    SELECT *
+      INTO E
+      FROM EMPLOYEE
+     WHERE EMP_ID = &사번;
+     
+     DBMS_OUTPUT.PUT_LINE('사원명 : ' || E.EMP_NAME);
+     DBMS_OUTPUT.PUT_LINE('급여 : ' || E.SALARY);
+     -- DBMS_OUTPUT.PUT_LINE('보너스 : ' || E.BONUS);
+     -- DBMS_OUTPUT.PUT_LINE('보너스 : ' || NVL(E.BONUS, '없음'));  -- 오류 : 타입이 안맞아서
+     DBMS_OUTPUT.PUT_LINE('보너스 : ' || NVL(E.BONUS, 0));
+END;
+/
+
+-- 오류
+DECLARE
+    E EMPLOYEE%ROWTYPE;
+BEGIN
+    SELECT EMP_NAME, SALARY, BONUS  -- 무조건 *을 사용
+      INTO E
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+     
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' || E.EMP_NAME);
+    DBMS_OUTPUT.PUT_LINE('급여 : ' || E.SALARY);
+    DBMS_OUTPUT.PUT_LINE('보너스 : ' || E.BONUS);
+END;
+/
+
+--==============================================================================
+/*
+    2. BEGIN 실행부
+    
+        <조건문>
+        1) 단일 IF문
+           IF 조건식 THEN 실행내용 END IF;
+*/
+-- 사번을 입력받은 후 해당 사원의 사번, 사원명, 급여, 보너스율(%)출력
+-- 단, 보너스를 받지않는사원은 보너스율 출력전에 '보너스를 받지않는 사원입니다'출력
+
+
+
 
 
 

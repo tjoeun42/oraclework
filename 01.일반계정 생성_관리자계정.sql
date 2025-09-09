@@ -64,5 +64,10 @@ create user scott identified by 1234;
 grant CONNECT, RESOURCE to scott;
 alter user scott quota unlimited on users;
 
+-- VIEW 생성할 수 있는 권한
+GRANT CREATE VIEW TO TJOEUN;
+
+
+
 
 

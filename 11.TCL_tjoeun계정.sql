@@ -86,6 +86,3 @@ CREATE TABLE TEST (
 );  -- 트랜잭션의 모든 내용은 자동 COMMIT됨
 
 ROLLBACK; -- 소용없음
-
-
-

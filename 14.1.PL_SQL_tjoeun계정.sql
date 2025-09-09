@@ -173,10 +173,146 @@ END;
 */
 -- 사번을 입력받은 후 해당 사원의 사번, 사원명, 급여, 보너스율(%)출력
 -- 단, 보너스를 받지않는사원은 보너스율 출력전에 '보너스를 받지않는 사원입니다'출력
+DECLARE
+    EID EMPLOYEE.EMP_ID%TYPE;
+    ENAME EMPLOYEE.EMP_NAME%TYPE;
+    SAL EMPLOYEE.SALARY%TYPE;
+    BONUS EMPLOYEE.BONUS%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, SALARY, NVL(BONUS,0)
+      INTO EID, ENAME, SAL, BONUS
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+     
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || EID);
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' || ENAME);
+    DBMS_OUTPUT.PUT_LINE('급여 : ' || SAL);
+    
+    IF BONUS = 0
+        THEN DBMS_OUTPUT.PUT_LINE('보너스를 지급받지 않는 사원입니다');
+    END IF;  
+    
+    DBMS_OUTPUT.PUT_LINE('보너스 : ' || BONUS*100 || '%');
+END;
+/
 
+--   2) IF-ELSE문
+--      IF 조건식 THEN 실행내용 ELSE 실행내용 END IF;   
+DECLARE
+    EID EMPLOYEE.EMP_ID%TYPE;
+    ENAME EMPLOYEE.EMP_NAME%TYPE;
+    SAL EMPLOYEE.SALARY%TYPE;
+    BONUS EMPLOYEE.BONUS%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, SALARY, NVL(BONUS,0)
+      INTO EID, ENAME, SAL, BONUS
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+     
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || EID);
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' || ENAME);
+    DBMS_OUTPUT.PUT_LINE('급여 : ' || SAL);
+    
+    IF BONUS = 0
+        THEN DBMS_OUTPUT.PUT_LINE('보너스를 지급받지 않는 사원입니다');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('보너스 : ' || BONUS*100 || '%');
+    END IF;  
+END;
+/
 
+-- 문제
+/*
+    레퍼런스 변수 : EID, ENAME, DTITLE, NCODE
+    참조 컬럼 : EMP_ID, EMP_NAME, DEPT_TITLE, NATIONAL_CODE
+    일반 변수 : TEAM(소속)
+    
+    실행 : 사용자가 입력한 사번의 사번, 이름, 부서명, 근무국가코드를 변수에 대입
+          단) NCODE값이 KO일 경우 => TEAM변수에 '국내팀'
+              NCODE값이 KO가 아니면 => TEAM변수에 '해외팀'
+              
+    출력 : 사번, 이름, 부서명, 소속 출력          
+*/
+DECLARE
+    EID EMPLOYEE.EMP_ID%TYPE; 
+    ENAME EMPLOYEE.EMP_NAME%TYPE;
+    DTITLE DEPARTMENT.DEPT_TITLE%TYPE; 
+    NCODE LOCATION.NATIONAL_CODE%TYPE;
+    TEAM VARCHAR2(10);
+BEGIN
+    SELECT EMP_ID, EMP_NAME, DEPT_TITLE, NATIONAL_CODE
+      INTO EID, ENAME, DTITLE, NCODE
+      FROM EMPLOYEE
+      JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+      JOIN LOCATION ON(LOCATION_ID = LOCAL_CODE)
+     WHERE EMP_ID = '&사번';
+     
+     IF NCODE = 'KO'
+        THEN TEAM := '국내팀';
+     ELSE
+        TEAM := '해외팀';
+     END IF;
+     
+     DBMS_OUTPUT.PUT_LINE('사번 : ' || EID);
+     DBMS_OUTPUT.PUT_LINE('이름 : ' || ENAME);
+     DBMS_OUTPUT.PUT_LINE('부서 : ' || DTITLE);
+     DBMS_OUTPUT.PUT_LINE('소속 : ' || TEAM);
+END;
+/
 
+/*
+        3) IF-ELSE문
+            IF 조건식1 THEN 실행내용1;
+            ELSIF 조건식2 THEN 실행내용2;
+            ELSIF 조건식3 THEN 실행내용3;
+            ELSE 실행내용4;
+            END IF; 
+*/
 
+-- 사용자로 부터 점수를 입력받아 학점 출력
+-- 변수 2개 필요. (점수, 학점)
+DECLARE
+    SCORE NUMBER;
+    GRADE CHAR(1);
+BEGIN
+    SCORE := &점수;
+    
+    IF SCORE >= 90 THEN GRADE := 'A';
+    ELSIF SCORE >= 80 THEN GRADE := 'B';
+    ELSIF SCORE >= 70 THEN GRADE := 'C';
+    ELSIF SCORE >= 60 THEN GRADE := 'D';
+    ELSE GRADE := 'F';
+    END IF;
 
+    -- 당신의 점수는 ??점이고 ,학점은 ?학점입니다.
+    DBMS_OUTPUT.PUT_LINE('당신의 점수는 ' || SCORE || '점이고, 학점은 ' || GRADE || '학점입니다');
+END;
+/
 
+-- 문제
+/*
+    사용자에게 입력받은 사번의 급여를 조회하여 SAL변수에 입력하고
+    - 500만원 이상이면 '고급'
+    - 300만원 이상 500만원 미만이면 '중급'
+    - 300만원 미만이면 '초급'
+    
+    출력 : 해당 사원의 급여 등급은 ??입니다
+*/
 
+DECLARE
+    SAL EMPLOYEE.SALARY%TYPE;
+    GRADE VARCHAR2(10);
+BEGIN
+    SELECT SALARY
+      INTO SAL
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+     
+    IF SAL >= 5000000 THEN GRADE := '고급';
+    ELSIF SAL >= 3000000 THEN GRADE := '중급';
+    ELSE GRADE := '초급';
+    END IF;
+    
+    DBMS_OUTPUT.PUT_LINE('해당 사원의 급여 등급은 ' || GRADE || '입니다');
+END;
+/

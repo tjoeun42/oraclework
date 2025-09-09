@@ -134,3 +134,127 @@ WHERE JOB_CODE = 'J8';
 -- 뷰를 통해서 DELETE
 DELETE FROM VW_JOB
 WHERE JOB_CODE = 'J8';
+
+/*
+    * DML명령어 조작이 불가능한 경우가 더 많음
+    1) 뷰에 정의되지 않은 컬럼을 조작하려고 하는 경우
+    2) 뷰에 정의되지 않은 컬럼중에 베이스테이블 상에 NOT NULL제약조건이 지정되어 있는경우
+    3) 산술연산식 또는 함수식이 정의되어 있는 경우
+    4) 그룹함수나 GROUP BY절이 포함된 경우
+    5) DISTINCT 구문이 포함된 경우
+    6) JOIN을 이용하여 여러 테이블을 연결시켜놓은 경우
+*/
+-- 1) 뷰에 정의되지 않은 컬럼을 조작하려고 할 때
+CREATE OR REPLACE VIEW VW_JOB
+AS SELECT JOB_CODE
+    FROM JOB;
+    
+-- INSERT (오류)
+INSERT INTO VW_JOB(JOB_CODE, JOB_NAME) VALUES ('J8', '인턴');
+
+-- UPDATE (오류)
+UPDATE VW_JOB
+SET JOB_NAME = '인턴'
+WHERE JOB_CODE = 'J7';
+
+-- DELETE (오류)
+DELETE
+FROM VW_JOB
+WHERE JOB_NAME = '사원';
+
+-- 2) 뷰에 정의되지 않은 컬럼중에 베이스테이블 상에 NOT NULL제약조건이 지정되어 있는경우
+CREATE OR REPLACE VIEW VW_JOB
+AS SELECT JOB_NAME
+    FROM JOB;
+
+-- INSERT (오류 : 베이스테이블에 JOB_CODE가 PRIMARY KEY여서 NULL값을 가지면 안됨)
+INSERT INTO VW_JOB VALUES('인턴');
+
+-- UPDATE (성공)
+UPDATE VW_JOB
+SET JOB_NAME = '알바'
+WHERE JOB_NAME = '사원';
+
+ROLLBACK;
+
+-- DELETE (성공일수도 오류일수도 있음. 외래키가 걸려있어 자식테이블에서 값을 사용하면 삭제 불가)
+DELETE
+FROM VW_JOB
+WHERE JOB_NAME = '사원';
+
+-- 3) 산술연산식 또는 함수식이 정의되어 있는 경우
+CREATE VIEW VW_EMP_SAL
+AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY*12 연봉
+     FROM EMPLOYEE;
+     
+-- INSERT (오류 - 연봉은 베이스테이블에 없음)
+INSERT INTO VW_EMP_SAL VALUES(400, '김상진', 3000000, 36000000);
+
+-- UPDATE (오류 - 연봉은 베이스테이블에 없음)
+UPDATE VW_EMP_SAL
+SET 연봉 = 45000000
+WHERE EMP_ID = 300;
+
+-- UPDATE (성공) 301번 사원의 급여를 250만원으로 변경
+UPDATE VW_EMP_SAL
+SET SALARY = 2500000
+WHERE EMP_ID = 301;
+
+-- DELETE (성공)
+DELETE
+  FROM VW_EMP_SAL
+ WHERE 연봉 = 72000000; 
+
+ROLLBACK;
+
+-- 4) 그룹함수나 GROUP BY절이 포함된 경우
+CREATE VIEW VW_GROUP_DEPT
+AS SELECT DEPT_CODE, SUM(SALARY) 합계, CEIL(AVG(SALARY)) 평균
+     FROM EMPLOYEE
+ GROUP BY DEPT_CODE;
+ 
+-- INSERT (오류)
+INSERT INTO VW_GROUP_DEPT VALUES ('D3', 8000000, 4000000);
+
+-- UPDATE (오류 - 'D1'인 사원 3명 중 누구의 급여를 올릴지 알수 없음)
+UPDATE VW_GROUP_DEPT
+SET 합계 = 8000000
+WHERE DEPT_CODE = 'D1';
+
+SELECT EMP_ID, DEPT_CODE, SALARY
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D1';
+
+-- DELETE (오류)
+DELETE FROM VW_GROUP_DEPT
+WHERE 합계 = 5210000;
+
+-- 5) DISTINCT 구문이 포함된 경우
+CREATE VIEW VW_DI_JOB
+AS SELECT DISTINCT JOB_CODE
+FROM EMPLOYEE;
+
+-- INSERT (오류)
+INSERT INTO VW_DI_JOB VALUES('J8');
+
+-- UPDATE (오류)
+UPDATE VW_DI_JOB
+SET JOB_CODE = 'J8'
+WHERE JOB_CODE = 'J7';
+
+-- DELETE (오류)
+DELETE
+FROM VW_DI_JOB
+WHERE JOB_CODE = 'J4';
+
+-- 6) JOIN을 이용하여 여러 테이블을 연결시켜놓은 경우
+CREATE VIEW VW_JOIN
+AS SELECT EMP_ID, EMP_NAME, DEPT_TITLE
+     FROM EMPLOYEE
+     JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID);
+
+
+
+
+
+

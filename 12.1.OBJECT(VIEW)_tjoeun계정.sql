@@ -253,8 +253,109 @@ AS SELECT EMP_ID, EMP_NAME, DEPT_TITLE
      FROM EMPLOYEE
      JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID);
 
+-- INSERT (오류)
+INSERT INTO VW_JOIN VALUES(300, '황미혜', '총무부');
 
+-- UPDATE
+UPDATE VW_JOIN
+SET EMP_NAME = '김새로'
+WHERE EMP_ID = 200;
 
+-- UPDATE (성공)(그러나 JOIN을 통해 부서를 가져왔기 때문에 EMPLOYEE테이블의 DEPT_CODE는 수정안됨. 조심해야됨)
+UPDATE VW_JOIN
+SET DEPT_TITLE = '인사관리부'
+WHERE EMP_ID = 200;
 
+-- DELETE (성공)
+DELETE FROM VW_JOIN
+WHERE EMP_ID = 200;
 
+ROLLBACK;
 
+--------------------------------------------------------------------------------
+/*
+    * VIEW 옵션
+      [상세표현식] CREATE [OR REPACE] [FORCE | NOFORCE] VIEW 뷰명
+      AS 서브쿼리
+      [WITH CHECK OPTION]
+      [WITH READ ONLY];
+      
+      1) OR REPACE : 기존에 동일한 뷰가 있으면 갱신하고, 없으면 새로 생성
+      2) FORCE | NOFORCE
+         > FORCE : 서브쿼리에 기술된 테이블이 존재하지 않아도 뷰를 생성함
+         > NOFORCE : 서브쿼리에 기술된 테이블이 존재해야만 뷰가 생성됨(생략시 기본값)
+      3) WITH CHECK OPTION : DML시 서브쿼리에 기술된 조건에 부합한 값으로만 DML 가능하도록 함
+      4) WITH READ ONLY : 뷰에 대해 조회만 가능(DML문 수행불가) 
+*/
+-- 2) FORCE | NOFORCE
+--    NOFORCE : 서브쿼리에 기술된 테이블이 존재해야만 뷰가 생성됨
+CREATE /* NOFORCE */ VIEW VW_EMP
+AS SELECT TCODE, TNAME, TCONTENT
+     FROM TT;  -- TT테이블이 없기 때문에 오류
+
+CREATE FORCE VIEW VW_EMP
+AS SELECT TCODE, TNAME, TCONTENT
+     FROM TT;  -- VIEW 생성 가능
+     
+SELECT * FROM VW_EMP;   -- 오류 : 베이스테이블이 없어서 SELETE할 수 없음
+     
+-- VW_EMP VIEW를 사용하려면 TT테이블을 생성해야만 사용가능함
+CREATE TABLE TT(
+    TCODE NUMBER,
+    TNAME VARCHAR2(20),
+    TCONTENT VARCHAR2(100)
+);
+
+SELECT * FROM VW_EMP;  -- 베이스테이블 생성후엔 SELECT 가능
+
+INSERT INTO VW_EMP VALUES(1, '나경영', '내용삽입');
+
+-- 3) WITH CHECK OPTION
+-- WITH CHECK OPTION을 사용안하고
+CREATE OR REPLACE VIEW VW_EMP
+AS SELECT *
+     FROM EMPLOYEE
+    WHERE SALARY >= 3000000;
+
+SELECT * FROM VW_EMP;   -- 9명 
+
+-- 300번 사원의 급여를 2백만원으로 변경
+UPDATE VW_EMP
+SET SALARY = 2000000
+WHERE EMP_ID = 300;    
+
+SELECT * FROM VW_EMP;       -- 8명
+
+-- WITH CHECK OPTION 사용
+CREATE OR REPLACE VIEW VW_EMP
+AS SELECT *
+     FROM EMPLOYEE
+    WHERE SALARY >= 3000000
+WITH CHECK OPTION;
+
+UPDATE VW_EMP
+SET SALARY = 2000000
+WHERE EMP_ID = 217;  -- 오류
+
+UPDATE VW_EMP
+SET SALARY = 4000000
+WHERE EMP_ID = 217;   -- 성공
+
+ROLLBACK;
+
+-- 4) WITH READ ONLY
+CREATE OR REPLACE VIEW VW_EMP
+AS SELECT EMP_ID, EMP_NAME, BONUS
+     FROM EMPLOYEE
+    WHERE BONUS IS NOT NULL
+WITH READ ONLY;
+
+SELECT * FROM VW_EMP;
+SELECT * FROM VW_EMP WHERE BONUS >= 0.2;
+
+UPDATE VW_EMP
+SET BONUS = 0.35
+WHERE EMP_ID = 200;   -- 오류
+
+DELETE FROM VW_EMP
+WHERE EMP_ID = 200;

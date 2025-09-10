@@ -316,3 +316,288 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('해당 사원의 급여 등급은 ' || GRADE || '입니다');
 END;
 /
+
+/*
+        4) CASE 비교대상자
+            WHEN 비교할값1 THEN 실행내용1
+            WHEN 비교할값2 THEN 실행내용2
+            WHEN 비교할값3 THEN 실행내용3
+            ELSE 실행내용4
+           END;
+           
+           JAVA PROGRAM
+           SWITCH(변수) {      -> CASE
+            CASE 비교할값1 :    -> WHEN
+                실행내용1;      -> THEN
+            DEFAULT :          -> ELSE     
+           }
+*/
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+    DNAME VARCHAR2(30);
+BEGIN
+    SELECT *
+      INTO EMP
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+     
+     DNAME := CASE EMP.DEPT_CODE
+                WHEN 'D1' THEN '인사팀'
+                WHEN 'D2' THEN '회계팀'
+                WHEN 'D3' THEN '마케팅팀'
+                WHEN 'D4' THEN '국내영업팀'
+                WHEN 'D8' THEN '기술지원팀'
+                WHEN 'D9' THEN '총무팀'
+                ELSE '해외영업팀'
+             END;
+    
+    DBMS_OUTPUT.PUT_LINE(EMP.EMP_NAME || '은 ' || DNAME || '입니다');
+END;
+/
+
+--------------------------------------------------------------------------------
+/*
+    <LOOP>
+    1) BASIC LOOP문
+    
+    [표현식]
+    LOOP
+        반복적으로 실행할 구문;
+        ** 반복문을 빠져나갈 구문;
+    END LOOP;
+    
+    ** 반복문을 빠져나갈 조건문 2가지
+    (1) IF 조건식 THEN EXIT; END IF;
+    (2) EXIT WHEN 조건식;
+*/
+-- 1~5까지 1씩 증가하면서 출력
+--   (1) IF 조건식 THEN EXIT; END IF;
+DECLARE
+    I NUMBER := 1;
+BEGIN
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(I);
+        I := I + 1;
+        
+        IF I=6 THEN EXIT;
+        END IF;
+    END LOOP;
+END;
+/
+
+--    (2) EXIT WHEN 조건식;
+DECLARE
+    I NUMBER := 1;
+BEGIN
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(I);
+        I := I + 1;
+        
+        EXIT WHEN I=6;
+    END LOOP;
+END;
+/
+
+/*
+    2) FOR LOOP문
+    
+    [표현식]
+    FOR 변수 IN [REVERSE] 초기값.. 최종값
+    LOOP
+        반복적으로 실행할 구문;
+    END LOOP;    
+*/
+
+BEGIN
+    FOR I IN 1..5
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(I);
+    END LOOP;
+END;
+/
+
+BEGIN
+    FOR I IN REVERSE 1..5
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(I);
+    END LOOP;
+END;
+/
+
+-- 테이블과 시퀀스를 생성하고, 테이블에 INSERT하는 구문 만들기
+DROP TABLE TEST;
+DROP SEQUENCE SEQ_TNO;
+
+CREATE TABLE TEST(
+    TNO NUMBER PRIMARY KEY,
+    TDATE DATE
+);
+
+CREATE SEQUENCE SEQ_TNO
+INCREMENT BY 2
+START WITH 100
+MAXVALUE 1000
+NOCYCLE
+NOCACHE;
+
+BEGIN
+    FOR I IN 1..100
+    LOOP
+        INSERT INTO TEST VALUES(SEQ_TNO.NEXTVAL, SYSDATE);
+    END LOOP;
+END;
+/
+
+/*
+    3) WHILE LOOP문
+    
+    [표현식]
+    WHILE 반복문이 수행할 조건
+    LOOP
+        반복적으로 실행할 구문;
+    END LOOP;
+*/
+DECLARE
+    I NUMBER := 1;
+BEGIN
+    WHILE I<6
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(I);
+        I := I+1;
+    END LOOP;
+END;
+/
+
+--------------------------------------------------------------------------------
+/*
+    3. 예외처리부
+       실행 중 발생하는 오류
+       
+       [표현식]
+       EXCEPTION
+        WHEN 예외명1 THEN 예외처리구문1;
+        WHEN 예외명2 THEN 예외처리구문2;
+        WHEN 예외명N THEN 예외처리구문N;
+        
+       * 시스템 예외(오라클에서 미리 정의해둔 예외)
+       - NO_DATA_FOUND : SELECT한 결과가 한 행도 없을 경우
+       - TOO_MANY_ROWS : SELECT한 결과가 여러행일 경우
+       - ZERO_DIVIDE : 0으로 나눌 때
+       - DUP_VAL_ON_INDEX : UNIQUE 제약조건에 위배되었을 경우
+       ...
+*/
+
+-- 사용자로 부터 입력을 받아 나눗셈을 한 결과 출력
+DECLARE
+    RESULT NUMBER;
+BEGIN
+    RESULT := 10/&숫자;
+    DBMS_OUTPUT.PUT_LINE(RESULT);
+EXCEPTION
+    -- WHEN ZERO_DIVIDE THEN DBMS_OUTPUT.PUT_LINE('0으로 나눌수 없습니다');
+    WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('0으로 나눌수 없습니다');
+END;
+/
+
+-- UNIQUE 제약조건 위배
+BEGIN
+    UPDATE EMPLOYEE
+    SET EMP_ID = '&변경할사번'
+    WHERE EMP_NAME = '이정하';
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN DBMS_OUTPUT.PUT_LINE('이미 존재하는 사번입니다');
+END;
+/
+
+-- 사수 201번은 1명, 200번은 여러명, 202는 없음
+DECLARE
+    EID EMPLOYEE.EMP_ID%TYPE;
+    ENAME EMPLOYEE.EMP_NAME%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME
+      INTO EID, ENAME
+      FROM EMPLOYEE
+     WHERE MANAGER_ID = '&사수사번';
+     
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || EID); 
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || ENAME);
+    
+    EXCEPTION
+        WHEN TOO_MANY_ROWS THEN DBMS_OUTPUT.PUT_LINE('너무 많은 행이 조회되었습니다');
+        WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('조회 결과가 없습니다');
+END;
+/
+
+-- 문제
+/*
+    1. 사원의 연봉(보너스포함)을 구하는 PL/SQL블럭 작성
+       > 사용자로부터 EMP_ID를 입력받는 구문으로 작성
+       > 출력 : 급여, 이름, 연봉(\23,500,00)
+*/
+DECLARE
+    E EMPLOYEE%ROWTYPE;
+    YSALARY NUMBER;
+BEGIN
+    SELECT *
+      INTO E
+      FROM EMPLOYEE
+     WHERE EMP_ID = '&사번';
+    
+    IF(E.BONUS IS NULL)
+        THEN YSALARY := E.SALARY * 12;
+    ELSE
+        YSALARY := E.SALARY * (1+E.BONUS) * 12;
+    END IF;
+
+    DBMS_OUTPUT.PUT_LINE(E.SALARY || ', ' || E.EMP_NAME || ', ' ||
+                         TO_CHAR(YSALARY, 'L999,999,999'));
+END;
+/
+
+/*
+    2. 구구단의 짝수단만 출력
+        1) FOR LOOP
+        2) WHILE LOOP
+*/
+-- 1) FOR LOOP
+BEGIN
+    FOR DAN IN 2..9
+    LOOP
+        IF MOD(DAN, 2) = 0
+            THEN
+                DBMS_OUTPUT.PUT_LINE('--- ' || DAN || '단 ---');
+                FOR SU IN 1..9
+                LOOP
+                    DBMS_OUTPUT.PUT_LINE(DAN || ' * ' || SU || ' = ' || DAN*SU);
+                END LOOP;
+            DBMS_OUTPUT.PUT_LINE('');
+        END IF;
+    END LOOP;
+END;
+/
+
+-- 2) WHILE LOOP
+DECLARE
+    DAN NUMBER := 2;
+    SU NUMBER;
+BEGIN
+    WHILE DAN <= 9
+    LOOP
+        SU := 1;
+        WHILE SU <= 9
+            LOOP
+               DBMS_OUTPUT.PUT_LINE(DAN || ' * ' || SU || ' = ' || DAN*SU);
+               SU := SU+1;
+            END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+        DAN := DAN+2;
+    END LOOP;
+END;
+/
+
+
+
+
+
+
